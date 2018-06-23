@@ -207,7 +207,7 @@
       var golem_time = new Date(2018, 5, 22, 6);             // time of magma golem in UTC
       var offset = golem_time.getTimezoneOffset() * 60000;    // offset of UTC to user's timezone in ms
 
-      var l_golem_time = new Date(golem_time.getTime() - offset);    // golem time localized to user
+      var l_golem_time = new Date(golem_time.getTime() + offset);    // golem time localized to user
 
       for(var i=0; i<golems.length; i++) {
         var e = create_golem(golems[i], i);
