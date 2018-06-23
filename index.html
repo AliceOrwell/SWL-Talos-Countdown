@@ -98,9 +98,9 @@
     <h2>Link Script</h2>
 
     <p>If you would like to easily link to this page within the game then download
-    <a href="./data/talos" download target="_blank">this file</a> and save it to your Scripts directory where
-    you have Secret World Legends installed. Once you've done that typing the command
-    <i>/talos</i> will execute the script.</p>
+    <a href="./data/talos" download target="_blank">this file</a> and save it to your
+    Scripts directory wher you have Secret World Legends installed. Once you've
+    done that typing the command <i>/talos</i> will execute the script.</p>
   </div>
   <div class="rightpanel">
     <div id="time"></div>
@@ -115,14 +115,18 @@
       document.getElementById("javascriptnotice").style.display = 'none';
     };
 
-    var golems = [ "Verdant", "Magma", "Silver", "Frost", "Clay", "Technology",
-                  "Concrete", "Stone", "Water", "Sand", "Swarm"];
+    var golems = [ "Magma", "Silver", "Frost", "Clay", "Technology",
+                  "Concrete", "Stone", "Water", "Sand", "Swarm", "Verdant"];
     var now = new Date();
 
 
-    function create_golem(name) {
+    function create_golem(name, index) {
       var e = document.createElement("div");
       $(e).addClass('golem');
+
+      var id = String(name) + "-" + String(index);
+      $(e).attr("id", id);
+
       $(e).append("<div class='name'>");
       $(e).append("<div class='remaining'>");
       $(e).append("<div class='time'>");
@@ -202,11 +206,11 @@
 
       var golem_time = new Date(2018, 5, 22, 6);             // time of magma golem in UTC
       var offset = golem_time.getTimezoneOffset() * 60000;    // offset of UTC to user's timezone in ms
-      offset = 0;
+
       var l_golem_time = new Date(golem_time.getTime() - offset);    // golem time localized to user
 
       for(var i=0; i<golems.length; i++) {
-        var e = create_golem(golems[i]);
+        var e = create_golem(golems[i], i);
 
         // offset time of the original golem time to find the time of
         // successive golems. Each comes 1 hour after the previous
