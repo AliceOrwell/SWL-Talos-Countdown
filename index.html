@@ -115,6 +115,7 @@
       document.getElementById("javascriptnotice").style.display = 'none';
     };
 
+    // Update golem_time if this list ordering is changed.
     var golems = [ "Magma", "Silver", "Frost", "Clay", "Technology",
                   "Concrete", "Stone", "Water", "Sand", "Swarm", "Verdant"];
     var now = new Date();
@@ -153,7 +154,8 @@
     */
     function calculate_time(time) {
       var attempts = 0;
-      var max_attempts = 5;
+      var m = (22 * 24)/golems.length; // event is 22 days long, 24 hours in a day, length of cycle
+      var max_attempts = Math.ceil(m);
 
       while (now - time > 0 && attempts < max_attempts) {
         time = calculate_next(time);
@@ -204,6 +206,7 @@
       $("#time").html(now);
       $("#golems").html("");
 
+      // using a known occurance of a magma golem
       var golem_time = new Date(2018, 5, 22, 6);             // time of magma golem in UTC
       var offset = golem_time.getTimezoneOffset() * 60000;    // offset of UTC to user's timezone in ms
 
@@ -218,6 +221,7 @@
         var t = new Date(l_golem_time.getTime() + i * hour);  // time + offset
         t = calculate_time(t);
 
+        // Forecast times
         var times = format_date(t);
         var ft = t;
         var forcasts = 3;
@@ -225,14 +229,10 @@
           ft = calculate_next(ft);
           times = times + ", " + format_date(ft);
         }
-        var t1 = calculate_time(t);
-        var t2 = calculate_next(t1);
-        var t3 = calculate_next(t2);
-
-        //var times = format_date(t1) + ", " + format_date(t2) + ", " + format_date(t3);
         $(e).find(".time").html(times);
 
-        var remaining = calculate_remaining(t1);
+        // Remaining time
+        var remaining = calculate_remaining(t);
         if (remaining == "Now") {
           $(e).addClass("now");
         }
@@ -244,6 +244,7 @@
         $("#golems").append(e);
       }
 
+      // Sort the listing based on time remaining
       var $golems = $("#golems");
       var $golem = $(".golem");
       $golem.sort(function(a, b) {
