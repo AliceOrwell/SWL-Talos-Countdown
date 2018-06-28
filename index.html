@@ -1,77 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <script language="javascript" type="text/javascript" src="jquery-3.3.1.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="keywords" content="Secret World Legends, SWL, Funcom, Anniversary event, Talos of Gaia event, Golems, Timers" />
 
   <title>Talos Countdown</title>
-  <style type="text/css">
-    body {
-      background: #FFFFFF none repeat scroll 0 0;
-      font-family: Tahoma,Calibri,Verdana,Geneva,sans-serif;
-      font-size: 0.9em;
-      max-width: 1100px;
-      min-width: 800px;
-      margin: 0 auto;
-      text-align: center;
-    }
-    h2 {
-      text-align: left;
-    }
-    p {
-      text-align: justify;
-    }
-    font {
-      font-weight: bold;
-    }
 
-    .leftpanel {
-      display: inline-block;
-      float: left;
-      padding-right: 1em;
-      text-align: left;
-      width: 35%;
-    }
-    .rightpanel {
-      display: inline-block;
-      width: 60%;
-    }
-
-    #javascriptnotice {
-      border: medium dashed red;
-      color: red;
-      font-weight: bold;
-      padding: 1em;
-      margin: 1em;
-    }
-
-    #time {
-      font-size: 0.8em;
-    }
-    .golem {
-      background-color: lightyellow;
-      margin: 0.4em;
-      padding: 0.1em;
-      text-align: center;
-    }
-    .name {
-      font-size: 1.1em;
-      font-weight: bold;
-    }
-    .remaining {
-      font-size: 0.9em;
-      font-weight: bold;
-    }
-    .next {
-      background-color: gold;
-    }
-    .now {
-      background-color: orangered;
-    }
-    .time {
-      font-size: 0.8em;
-    }
-  </style>
+  <link rel="stylesheet" type="text/css" href="src/talos.css" />
 </head>
 
 <body>
@@ -81,17 +16,21 @@
     <h1>Talos Countdown</h1>
   </div>
 
-  <div id="javascriptnotice">
+  <div id="javascriptnotice" class="notice">
     This page requires Javascript. You're seeing this message as you have Javascript disabled.
+  </div>
+
+  <div id="eventended" class="notice hidden">
+    Talos of Gaia event has ended.
   </div>
 
   <div class="leftpanel">
     <h2>About</h2>
     <p>This is a simple web interface intended to help players of the videogame
-      <a href="https://www.secretworldlegends.com/">Secret World Legends</a> (SWL),
-      a MMORPG by <a href="https://www.funcom.com/">Funcom</a>. Its aim is to
-      provide information during the Talos of Gaia event regarding when each golem
-      will be spawned in Agartha.</p>
+    <a href="https://www.secretworldlegends.com/">Secret World Legends</a> (SWL),
+    a MMORPG by <a href="https://www.funcom.com/">Funcom</a>. Its aim is to
+    provide information during the Talos of Gaia event regarding when each golem
+    will be spawned in Agartha.</p>
 
     <p>Times are shown in the timezone set by your browser.</p>
 
@@ -107,173 +46,27 @@
     <p>If something is broken <a href="https://twitter.com/Alice_Orwell">go ask Alice</a>.</p>
   </div>
   <div class="rightpanel">
-    <div id="time"></div>
+    <div id="current_time" class="current_time"></div>
 
     <div id="golems"></div>
   </div>
 
 
+  <!-- libraries -->
+  <script language="javascript" type="text/javascript" src="lib/jquery-3.3.1.min.js"></script>
+  <script language="javascript" type="text/javascript" src="lib/moment-2.22.2.min.js"></script>
+  <script language="javascript" type="text/javascript" src="lib/moment-duration-format-2.2.2.js"></script>
+
+  <!-- custom -->
+  <script language="javascript" type="text/javascript" src="src/main.js"></script>
+  <script language="javascript" type="text/javascript" src="src/talos.js"></script>
   <script type="text/javascript">
+    // Hide Javascript disabled notice
+    document.getElementById("javascriptnotice").style.display = 'none';
+
     window.onload = function(e) {
-      // Hide Javascript disabled notice
-      document.getElementById("javascriptnotice").style.display = 'none';
+      updater_id = window.setInterval(tick, 1000);  // Refresh once a second
     };
-
-    // Update golem_time if this list ordering is changed.
-    var golems = [ "Magma", "Silver", "Frost", "Clay", "Technology",
-                  "Concrete", "Stone", "Water", "Sand", "Swarm", "Verdant"];
-    var now = new Date();
-
-
-    function create_golem(name, index) {
-      var e = document.createElement("div");
-      $(e).addClass('golem');
-
-      var id = String(name) + "-" + String(index);
-      $(e).attr("id", id);
-
-      $(e).append("<div class='name'>");
-      $(e).append("<div class='remaining'>");
-      $(e).append("<div class='time'>");
-
-      $(e).find(".name").html(name);
-      return e;
-    }
-
-    function format_date(dt) {
-      var t = dt.toTimeString().slice(0, 5);
-      var msg = dt.toDateString().slice(0,-5) + " " + t;
-      return msg
-    }
-
-    /*  Calculate the next time slot for a given golem time
-    */
-    function calculate_next(time) {
-      var offset = 1000 * 60 * 60 * golems.length;   // 1 hour * number of golems
-      time = new Date(time.getTime() + offset);
-      return time;
-    }
-
-    /*  Find next revelent timeslot for given golem time
-    */
-    function calculate_time(time) {
-      var attempts = 0;
-      var m = (22 * 24)/golems.length; // event is 22 days long, 24 hours in a day, length of cycle
-      var max_attempts = Math.ceil(m);
-
-      while (now - time > 0 && attempts < max_attempts) {
-        time = calculate_next(time);
-        attempts += 1;
-      }
-      return time;
-    }
-
-    function calculate_remaining(time) {
-      var diff = time - now;
-      var hours = diff / (1000 * 60 * 60);
-
-      var minutes = hours - Math.floor(hours);
-      minutes = 60 * minutes;
-
-      var seconds = minutes - Math.floor(minutes);
-      seconds = 60 * seconds;
-
-      hours = Math.floor(hours);
-      minutes = Math.floor(minutes);
-      seconds = Math.floor(seconds);
-
-      if (hours == 10 && minutes >= 50) {
-        return "Now";
-      }
-
-      function zero_pad(n) {
-        if (n < 10) {
-          n = "0" + n;
-        }
-        return n;
-      }
-      hours = zero_pad(hours);
-      minutes = zero_pad(minutes);
-      seconds = zero_pad(seconds);
-      var msg = hours +"H " + minutes + "M " + seconds + "S"
-
-      return msg;
-    }
-
-    /*
-    Run you fool! If you're reading this you've dug too deep. What follows
-    is a mess.
-    */
-    function tick() {
-      now = new Date();
-
-      $("#time").html(now);
-      $("#golems").html("");
-
-      // using a known occurance of a magma golem
-      var golem_time = new Date(2018, 5, 22, 6);             // time of magma golem in UTC
-      var offset = golem_time.getTimezoneOffset() * 60000;    // offset of UTC to user's timezone in ms
-
-      var l_golem_time = new Date(golem_time.getTime() - offset);    // golem time localized to user
-
-      for(var i=0; i<golems.length; i++) {
-        var e = create_golem(golems[i], i);
-
-        // offset time of the original golem time to find the time of
-        // successive golems. Each comes 1 hour after the previous
-        var hour = 1000 * 60 * 60;                            // 1 hour offset
-        var t = new Date(l_golem_time.getTime() + i * hour);  // time + offset
-        t = calculate_time(t);
-
-        // Forecast times
-        var times = format_date(t);
-        var ft = t;
-        var forcasts = 3;
-        for(var n=0; n < forcasts; n++) {
-          ft = calculate_next(ft);
-          times = times + ", " + format_date(ft);
-        }
-        $(e).find(".time").html(times);
-
-        // Remaining time
-        var remaining = calculate_remaining(t);
-        if (remaining == "Now") {
-          $(e).addClass("now");
-        }
-        if (remaining.slice(0,2) == "00") {
-          $(e).addClass("next");
-        }
-        $(e).find(".remaining").html(remaining);
-
-        $("#golems").append(e);
-      }
-
-      // Sort the listing based on time remaining
-      var $golems = $("#golems");
-      var $golem = $(".golem");
-      $golem.sort(function(a, b) {
-        var at = $(a).find(".remaining").html();
-        var bt = $(b).find(".remaining").html();
-
-        if (at == "Now") {
-          return -1;
-        }
-        if (bt == "Now") {
-          return 1;
-        }
-        if (at > bt) {
-          return 1;
-        }
-        if (at < bt) {
-          return -1;
-        }
-        return 0;
-      });
-      $golem.detach().appendTo($golems);
-    }
-
-    interval_id = window.setInterval(tick, 1000);
-
   </script>
 </body>
 </html>

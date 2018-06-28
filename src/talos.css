@@ -1,0 +1,72 @@
+body {
+  background: #FFFFFF none repeat scroll 0 0;
+  font-family: Tahoma,Calibri,Verdana,Geneva,sans-serif;
+  font-size: 0.9em;
+  margin: 0 auto;
+  max-width: 1100px;
+  min-width: 800px;
+  text-align: center;
+}
+h2 {
+  text-align: left;
+}
+p {
+  text-align: justify;
+}
+font {
+  font-weight: bold;
+}
+
+.leftpanel {
+  display: inline-block;
+  float: left;
+  padding-right: 1em;
+  text-align: left;
+  width: 35%;
+}
+.rightpanel {
+  display: inline-block;
+  width: 60%;
+}
+
+.notice {
+  border: medium dashed red;
+  color: red;
+  font-weight: bold;
+  margin: 1em;
+  padding: 1em;
+}
+.hidden {
+  display: none;
+}
+
+.current_time {
+  font-size: 0.8em;
+}
+
+.golem {
+  background-color: lightyellow;
+  margin: 0.4em;
+  padding: 0.1em;
+  text-align: center;
+}
+.name {
+  font-size: 1.1em;
+  font-weight: bold;
+}
+.remaining {
+  font-size: 0.9em;
+  font-weight: bold;
+}
+.next {
+  background-color: gold;
+}
+.grace {
+  background-color: orange;
+}
+.now {
+  background-color: orangered;
+}
+.time {
+  font-size: 0.8em;
+}
