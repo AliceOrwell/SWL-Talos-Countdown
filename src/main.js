@@ -107,8 +107,9 @@ function tick() {
   $("#golems").html("");      // Clear old data
 
   // Initialise golems
-  var golem_names = settings.golems;
-  // TODO: shift golem names due to settings
+  var shift = settings.known_golem_index;
+  var golem_names = settings.golems.indexShift(shift);
+
   var golems = [];
   for(var i=0; i < golem_names.length; i++) {
     var golem_time = moment(settings.known_golem_time);
@@ -122,6 +123,8 @@ function tick() {
 
   // Sort
   golems.sort(function(a, b) {
+    // Ascending order so consider non-time values as low in order to place
+    // at the top.
     if (a.isNow() || a.isGracePeriod()) {
       return -1;
     }
