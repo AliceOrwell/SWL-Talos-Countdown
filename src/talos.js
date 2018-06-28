@@ -18,26 +18,29 @@ function Talos(name, index, when) {
   this.name = name;
   this.index = index;
   this.id = this.name + "-" + String(index);
-  this.when = when;
-  this.forecasts = [when];
+  this.when = moment(when);
 
-  // Calculate remaining time
-  var diff = when - now;
-  this.remaining = moment.duration(diff, "milliseconds");
+  this.window_start = moment(this.when);
+  this.window_start = retreatWindow(this.window_start);
+
+  this.grace_end = moment(this.window_start);
+  this.grace_end.add(settings.grace_period, "ms");
+
+  this.window_end = moment(this.grace_end);
+  this.window_end.add(settings.window_period, "ms");
 
   // Generate forecast spawn windows
+  this.forecasts = [when];
   var num_forecasts = 4;
   for(var i=0; this.forecasts.length < num_forecasts; i++) {
     var time = this.forecasts[i];
-    time = moment(time);            // unlink the association with new instance
-
     var forecast = advanceWindow(time);
     this.forecasts.push(forecast);
   }
   // Stringify the forecasts
   for(var i=0; i < this.forecasts.length; i++) {
-    var fmt = settings.forecast_date_format;
-    this.forecasts[i] = this.forecasts[i].format(fmt);
+    var fmt = settings.format_forecast;
+    this.forecasts[i] = this.forecasts[i].format(fmt, {trim: false});
   }
 }
 
@@ -79,12 +82,11 @@ Talos.prototype.getHTML = function() {
 /*
   Returns true if loading screen grace period i.e.
   the 2 minutes after hour.
+
+  In order to be in the grace period we need to look at the previous forecast
 */
 Talos.prototype.isGracePeriod = function() {
-  var hours = this.remaining.hours();
-  var minutes = this.remaining.minutes();
-
-  var result = (hours == 10 && minutes >= 58);
+  var result = (now >= this.window_start && now < this.grace_end);
   return result;
 };
 
@@ -92,10 +94,7 @@ Talos.prototype.isGracePeriod = function() {
   Returns true if spawn window i.e. the portal is open
 */
 Talos.prototype.isNow = function() {
-  var hours = this.remaining.hours();
-  var minutes = this.remaining.minutes();
-
-  var result = (hours == 10 && minutes >= 50 && minutes < 58);
+  var result = (now >= this.grace_end && now < this.window_end);
   return result;
 };
 
@@ -103,22 +102,49 @@ Talos.prototype.isNow = function() {
   Returns true if is next to spawn.
 */
 Talos.prototype.isNext = function() {
-  var hours = this.remaining.hours();
-  var minutes = this.remaining.minutes();
+  var remaining = this.getRemaining();
 
-  var result = (hours == 0);
+  var interval = moment.duration(settings.interval, "ms");
+  interval.add(settings.grace_period);
+
+  var result = (remaining < interval);
   return result;
 };
 
+Talos.prototype.isExpired = function() {
+  var result = (now >= this.window_end);
+  return result;
+};
+
+Talos.prototype.getRemaining = function() {
+  var grace_end = moment(this.when);
+  grace_end.add(settings.grace_period, "ms");
+
+  var diff = grace_end.diff(now);  // Time from now til end of grace period
+  var remaining = moment.duration(diff, "ms");
+
+  return remaining;
+};
+
+
 Talos.prototype.status = function() {
+  var diff;
+
+  var dur = this.getRemaining();
+  var fmt = settings.format_remaining;
+
   if (this.isGracePeriod()) {
-    return "Head to Gate. Opening in less than 2 minutes.";
+    diff = this.grace_end.diff(now);
+
+    dur = moment.duration(diff, "ms");
+    fmt = settings.format_grace;
   }
-  if (this.isNow()) {
-    return "Gate now open.";
+  else if (this.isNow()) {
+    diff = this.window_end.diff(now);
+
+    dur = moment.duration(diff, "ms");
+    fmt = settings.format_now;
   }
 
-  var fmt = "hh[H] mm[M] ss[S]";
-  var m = this.remaining.format(fmt, {trim: false});
-  return m;
+  return dur.format(fmt, {trim: false});
 };

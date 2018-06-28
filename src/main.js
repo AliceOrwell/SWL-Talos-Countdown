@@ -29,8 +29,11 @@ var settings = {
   // Duration golem portal is open in ms.
   window_period: 1000 * 60 * 8, // 8 minutes
 
-  now_date_format: "ddd DD MMM YYYY HH:mm:ss ZZ", // e.g. Wed 27 Jun 2018 23:01:22+0100
-  forecast_date_format: "ddd DD MMM HH:mm",       // e.g. Wed 27 Jun 23:00
+  format_now_date: "ddd DD MMM YYYY HH:mm:ss ZZ", // e.g. Wed 27 Jun 2018 23:01:22+0100
+  format_forecast: "ddd DD MMM HH:mm",            // e.g. Wed 27 Jun 23:00
+  format_remaining: "hh[H] mm[M] ss[S]",          // e.g. 03H 13M 12S
+  format_grace: "[Head to Gate.] mm[M] ss[S]",
+  format_now: "[NOW. Closing in:] mm[M] ss[S]",
 
   // Duration of golem sequence in ms
   getSequenceInterval: function() {
@@ -81,12 +84,21 @@ function advanceWindow(time) {
   return time;
 }
 
+function retreatWindow(time) {
+  time = moment(time);    // new instance
+
+  var offset = settings.getSequenceInterval();
+  time.subtract(offset, "ms");
+  return time;
+}
+
 /*
   Returns a moment that has been offset to produce the next spawn window.
   Doesn't alter the given moment
 */
 function getNextSpawn(time) {
   time = moment(time);  // new instance
+
   while(now.diff(time) > 0 && !isEventExpired(time)) {
     time = advanceWindow(time);
   }
@@ -100,8 +112,8 @@ function getNextSpawn(time) {
 function tick() {
   now = moment();             // Update time
 
-  var fmt = settings.now_date_format;
-  var display_now = now.format(fmt);
+  var fmt = settings.format_now_date;
+  var display_now = now.format(fmt, {trim: false});
   $("#current_time").html(display_now);   // Display time to user.
 
   $("#golems").html("");      // Clear old data
@@ -131,10 +143,10 @@ function tick() {
     if (b.isNow() || b.isGracePeriod()) {
       return 1;
     }
-    if (a.remaining < b.remaining) {
+    if (a.when < b.when) {
       return -1;
     }
-    if (a.remaining > b.remaining) {
+    if (a.when > b.when) {
       return 1;
     }
     return 0;
