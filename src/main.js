@@ -29,8 +29,7 @@ var settings = {
   // Duration golem portal is open in ms.
   window_period: 1000 * 60 * 8, // 8 minutes
 
-  format_now_date: "ddd DD MMM YYYY HH:mm:ss ZZ", // e.g. Wed 27 Jun 2018 23:01:22+0100
-  format_forecast: "ddd DD MMM HH:mm",            // e.g. Wed 27 Jun 23:00
+  format_forecast: "ddd MMM DD HH:mm",            // e.g. Wed Jun 27 23:00
   format_remaining: "hh[H] mm[M] ss[S]",          // e.g. 03H 13M 12S
   format_grace: "[Head to Gate.] mm[M] ss[S]",
   format_now: "[NOW. Closing in:] mm[M] ss[S]",
@@ -110,11 +109,9 @@ function getNextSpawn(time) {
   Refresh function - creats and updates the golem data
 */
 function tick() {
-  now = moment();             // Update time
-
-  var fmt = settings.format_now_date;
-  var display_now = now.format(fmt, {trim: false});
-  $("#current_time").html(display_now);   // Display time to user.
+  now = new Date();               // Update time
+  $("#current_time").html(now);   // Display time to user.
+  now = moment(now);
 
   $("#golems").html("");      // Clear old data
 
