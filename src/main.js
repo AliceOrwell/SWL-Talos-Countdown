@@ -38,8 +38,8 @@ var settings = {
 
   format_forecast: "ddd MMM DD HH:mm",            // e.g. Wed Jun 27 23:00
   format_remaining: "hh[H] mm[M] ss[S]",          // e.g. 03H 13M 12S
-  format_grace: "[Head to Gate.] mm[M] ss[S]",
-  format_now: "[NOW. Closing in:] mm[M] ss[S]",
+  format_grace: "[Head to Gate.] mm[M] ss[S]",    // Head to Gate. 01M 49S
+  format_now: "[NOW. Closing in:] mm[M] ss[S]",   // NOW. Closing in: 01M 49S
 
 };
 var now = new Date();
@@ -183,8 +183,8 @@ SoundManager.prototype.isNow = function(time) {
 
   // or a little bit after...
   var end = moment(time);
-  var buffered_offset = this.offset * 1.2;
-  end.add(buffered_offset, "ms"); // add somee extra buffer
+  var buffered_offset = this.offset * 1.2; // add somee extra buffer
+  end.add(buffered_offset, "ms");
 
   // now, then it true
   if (now >= start && now <= end) {
