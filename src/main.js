@@ -7,9 +7,12 @@
  **********************************************************/
 
 
-var now = moment();
-
+/*
+  Filthy disgusting globals.
+*/
 var settings = {
+  update_freq: 1000,
+
   // When the event ends
   event_end: "2018-07-17T13:00:00+00:00",          // Assumed end date
 
@@ -28,17 +31,22 @@ var settings = {
   grace_period: 1000 * 60 * 2,  // 2 minutes
   // Duration golem portal is open in ms.
   window_period: 1000 * 60 * 8, // 8 minutes
+  // Duration of golem sequence in ms
+  getSequenceInterval: function() {
+    return this.interval * this.golems.length;  // Freq of golems * num of golems
+  },
 
   format_forecast: "ddd MMM DD HH:mm",            // e.g. Wed Jun 27 23:00
   format_remaining: "hh[H] mm[M] ss[S]",          // e.g. 03H 13M 12S
   format_grace: "[Head to Gate.] mm[M] ss[S]",
   format_now: "[NOW. Closing in:] mm[M] ss[S]",
 
-  // Duration of golem sequence in ms
-  getSequenceInterval: function() {
-    return this.interval * this.golems.length;  // Freq of golems * num of golems
-  }
 };
+var now = new Date();
+var sound_mng = new SoundManager();
+function snd_tick() {
+  sound_mng.tick();
+}
 
 
 
@@ -59,6 +67,12 @@ var settings = {
 
    return shifted;
  };
+
+
+
+ /*
+   Orphaned time functions in need of a home
+ */
 
 /*
   Returns true if for the givn time the event would be expired
@@ -106,14 +120,108 @@ function getNextSpawn(time) {
 
 
 /*
+  Orphaned sound functions in need of a home
+*/
+function isNotifyGrace() {
+  return $("#chk_grace").is(":checked");
+}
+function isNotifySpawn() {
+  return $("#chk_spawn").is(":checked");
+}
+function isSoundCompatible() {
+  var a = document.createElement('audio');
+  return !!(a.canPlayType && a.canPlayType('audio/mpeg;').replace(/no/, ''));
+}
+function isSoundEnabled() {
+  return isSoundCompatible() && (isNotifyGrace() || isNotifySpawn());
+}
+function getVolume() {
+  var volume = $("#volume").val();
+  volume = volume / 100.0;
+  return volume;
+}
+function notificationGrace() {
+  var sound_woodblock = new Audio('data/woodblock.mp3');
+  sound_woodblock.volume = getVolume();
+  sound_woodblock.play();
+}
+function notificationSpawn() {
+  var sound_woodblock = new Audio('data/woodblock.mp3');
+  sound_woodblock.volume = getVolume();
+  sound_woodblock.play();
+}
+
+/*
+  A crude sound manager to deal with sound events
+*/
+function SoundManager() {
+  this.offset = settings.update_freq / 2;
+  this.golem = undefined;
+  this.played_grace = false;
+  this.played_spawn = false;
+}
+SoundManager.prototype.register = function(golem) {
+  // if nothing registered
+  if (!this.golem) {
+    this.golem = golem;
+  }
+  // if a newer one (we expect to only be given the next)
+  else if (golem.when > this.golem.when) {
+    this.golem = golem;
+    this.played_grace = false;
+    this.played_spawn = false;
+  }
+};
+SoundManager.prototype.isNow = function(time) {
+  // if event is currently a little bit before...
+  var start = moment(time);
+  start.subtract(this.offset, "ms");
+
+  // or a little bit after...
+  var end = moment(time);
+  var buffered_offset = this.offset * 1.2;
+  end.add(buffered_offset, "ms"); // add somee extra buffer
+
+  // now, then it true
+  if (now >= start && now <= end) {
+    return true;
+  }
+  return false;
+};
+SoundManager.prototype.tick = function() {
+  if (!isSoundEnabled()) {
+    return;
+  }
+  if (!this.golem) {
+    console.log("SoundManager: Nothing registered yet.");
+    return;
+  }
+
+  if (isNotifyGrace()) {
+    var start = this.golem.window_start;
+    if (this.isNow(start) && !this.played_grace) {
+      notificationGrace();
+      this.played_grace = true;
+    }
+  }
+  if (isNotifySpawn()) {
+    var start = this.golem.grace_end;
+    if(this.isNow(start) && !this.played_spawn) {
+      notificationSpawn();
+      this.played_spawn = true;
+    }
+  }
+};
+
+
+
+/*
   Refresh function - creats and updates the golem data
 */
 function tick() {
   now = new Date();               // Update time
   $("#current_time").html(now);   // Display time to user.
   now = moment(now);
-
-  $("#golems").html("");      // Clear old data
 
   // Initialise golems
   var shift = settings.known_golem_index;
@@ -149,8 +257,15 @@ function tick() {
     return 0;
   });
 
+  // Register sound event, but only give the next
+  if (isSoundEnabled()) {
+    var next_golem = golems[0];
+    sound_mng.register(next_golem);
+  }
+
   // Display
-  for(var i=0; i < golem_names.length; i++) {
+  $("#golems").html("");      // Clear old data
+  for(var i=0; i < golems.length; i++) {
     $("#golems").append(golems[i].getHTML());
   }
 }
