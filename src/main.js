@@ -129,6 +129,10 @@ function isNotifySpawn() {
   return $("#chk_spawn").is(":checked");
 }
 function isSoundCompatible() {
+  /*
+  Check to see if the browser supports HTML5 mp3 playback
+  Taken from: http://diveintohtml5.info/everything.html
+  */
   var a = document.createElement('audio');
   return !!(a.canPlayType && a.canPlayType('audio/mpeg;').replace(/no/, ''));
 }
