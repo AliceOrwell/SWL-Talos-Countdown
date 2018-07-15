@@ -120,6 +120,8 @@
     document.getElementById("javascriptnotice").style.display = 'none';
 
     window.onload = function(e) {
+      main();
+
       if (sound_manager.isSoundCompatible()) {
         // Reveal the notifications panel since sound compatible
         $('#notifications').show();
@@ -135,8 +137,6 @@
         }
         $('#tts_voices').append(option);
       }
-
-      main();
     };
   </script>
 </body>
