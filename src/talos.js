@@ -14,137 +14,131 @@
 
 
 
-function Talos(name, index, when) {
+function Talos(name, index, window_start) {
   this.name = name;
   this.index = index;
-  this.id = this.name + "-" + String(index);
-  this.when = moment(when);
+  this.window = new Forecast(window_start);
 
-  this.window_start = moment(this.when);
-  this.window_start = retreatWindow(this.window_start);
+  this.num_forecasts = 4;
 
-  this.grace_end = moment(this.window_start);
-  this.grace_end.add(settings.grace_period, "ms");
-
-  this.window_end = moment(this.grace_end);
-  this.window_end.add(settings.window_period, "ms");
-
-  // Generate forecast spawn windows
-  this.forecasts = [when];
-  var num_forecasts = 4;
-  for(var i=0; this.forecasts.length < num_forecasts; i++) {
-    var time = this.forecasts[i];
-    var forecast = advanceWindow(time);
-    this.forecasts.push(forecast);
-  }
-  // Stringify the forecasts
-  for(var i=0; i < this.forecasts.length; i++) {
-    var fmt = settings.format_forecast;
-    this.forecasts[i] = this.forecasts[i].format(fmt, {trim: false});
-  }
+  this.id = undefined;
+  this.forecasts = undefined;
 }
+
+Talos.prototype.updateClasses = function($elem) {
+  if (this.window.isNow()) {
+    $elem.addClass("now");
+    $elem.removeClass("next");
+    $elem.removeClass("grace");
+  }
+  else if (this.window.isGracePeriod()) {
+    $elem.addClass("grace");
+    $elem.removeClass("next");
+    $elem.removeClass("now");
+  }
+  else if (this.window.isNext()) {
+    $elem.addClass("next");
+    $elem.removeClass("grace");
+    $elem.removeClass("now");
+  }
+  else {
+    $elem.removeClass("next");
+    $elem.removeClass("grace");
+    $elem.removeClass("now");
+  }
+};
 
 /*
   Creates then returns the HTML block for representing a golem
 */
-Talos.prototype.getHTML = function() {
+Talos.prototype.createHTML = function() {
   var elem = document.createElement("div");
   var $elem = $(elem);
 
   // Label the wrapper
   $elem.addClass('golem');
-  $elem.attr("id", this.id);
 
   // Put in the foundations
   $elem.append("<div class='name'>");
   $elem.append("<div class='remaining'>");
-  $elem.append("<div class='time'>");
+  $elem.append("<div class='forecasts'>");
 
   // Adjust classes based on golem status
-  if (this.isNow()) {
-    $elem.addClass("now");
-  }
-  else if (this.isGracePeriod()) {
-    $elem.addClass("grace");
-  }
-  else if (this.isNext()) {
-    $elem.addClass("next");
-  }
+  this.updateClasses($elem);
 
   // Fill in the foundations
-  $elem.find(".name").html(this.name);                    // Name
-  $elem.find(".remaining").html(this.status());         // Remaining time
-  $elem.find(".time").html(this.forecasts.join(", "));    // Forecasts
+  this.setHTMLDetails($elem);
 
   return elem;
 };
 
-/*
-  Returns true if loading screen grace period i.e.
-  the 2 minutes after hour.
+Talos.prototype.setHTMLDetails = function($elem) {
+  $elem.attr("id", this.getId());
 
-  In order to be in the grace period we need to look at the previous forecast
-*/
-Talos.prototype.isGracePeriod = function() {
-  var result = (now >= this.window_start && now < this.grace_end);
-  return result;
+  $elem.find(".name").html(this.name);            // Name
+  $elem.find(".remaining").html(this.status());   // Remaining time
+
+  var forecasts = this.getForecasts();            // Forecasts
+  forecasts = forecasts.join(", ");
+  $elem.find(".forecasts").html(forecasts);
+
+  // Adjust classes based on golem status
+  this.updateClasses($elem);
 };
 
-/*
-  Returns true if spawn window i.e. the portal is open
-*/
-Talos.prototype.isNow = function() {
-  var result = (now >= this.grace_end && now < this.window_end);
-  return result;
+Talos.prototype.getForecasts = function() {
+  if (this.forecasts) {
+    return this.forecasts;
+  }
+
+  // Generate forecast spawn windows
+  var start = this.window.getStart();
+  var forecast = new Forecast(start);
+  this.forecasts = [forecast];
+  for(var i=0; this.forecasts.length < this.num_forecasts; i++) {
+    start = this.forecasts[i].getStart();
+    forecast = new Forecast(start);
+
+    forecast.nextWindow();
+    this.forecasts.push(forecast);
+  }
+
+  return this.forecasts;
 };
 
-/*
-  Returns true if is next to spawn.
-*/
-Talos.prototype.isNext = function() {
-  var remaining = this.getRemaining();
-
-  var interval = moment.duration(settings.interval, "ms");
-  interval.add(settings.grace_period);
-
-  var result = (remaining < interval);
-  return result;
+Talos.prototype.getId = function() {
+  if (this.id) {
+    return this.id;
+  }
+  this.id = String(this.name) + "-" + String(this.index);
+  return this.id;
 };
-
-Talos.prototype.isExpired = function() {
-  var result = (now >= this.window_end);
-  return result;
-};
-
-Talos.prototype.getRemaining = function() {
-  var grace_end = moment(this.when);
-  grace_end.add(settings.grace_period, "ms");
-
-  var diff = grace_end.diff(now);  // Time from now til end of grace period
-  var remaining = moment.duration(diff, "ms");
-
-  return remaining;
-};
-
 
 Talos.prototype.status = function() {
   var diff;
 
-  var dur = this.getRemaining();
+  var dur = this.window.getRemaining();
   var fmt = settings.format_remaining;
 
-  if (this.isGracePeriod()) {
-    diff = this.grace_end.diff(now);
+  if (this.window.isGracePeriod()) {
+    diff = this.window.getGraceEnd().diff(now);
 
     dur = moment.duration(diff, "ms");
     fmt = settings.format_grace;
   }
-  else if (this.isNow()) {
-    diff = this.window_end.diff(now);
+  else if (this.window.isNow()) {
+    diff = this.window.getEnd().diff(now);
 
     dur = moment.duration(diff, "ms");
-    fmt = settings.format_now;
+    fmt = settings.format_spawn;
   }
 
   return dur.format(fmt, {trim: false});
+};
+
+Talos.prototype.update = function() {
+  if (this.window.isExpired()) {
+    this.forecasts = undefined;
+  }
+  this.window.update();
 };

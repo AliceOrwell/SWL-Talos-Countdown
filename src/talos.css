@@ -10,6 +10,9 @@ body {
 h2 {
   text-align: left;
 }
+h3 {
+  font-size: 0.8em;
+}
 p {
   text-align: justify;
 }
@@ -44,6 +47,14 @@ font {
   font-size: 0.8em;
 }
 
+.label {
+  display: inline-block;
+  width: 5em;
+}
+select {
+  max-width: 25em;
+}
+
 .golem {
   background-color: lightyellow;
   margin: 0.4em;
@@ -67,6 +78,6 @@ font {
 .now {
   background-color: orangered;
 }
-.time {
+.forecasts {
   font-size: 0.8em;
 }
