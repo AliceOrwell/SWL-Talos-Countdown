@@ -63,6 +63,17 @@ SoundManager.prototype.getTTSVolume = function() {
   return volume;
 };
 
+SoundManager.prototype.populateTTSVoices = function($elem) {
+  if ($elem.find("option").length == 0) {
+    var voices = window.speechSynthesis.getVoices();
+    var option = '';
+    for (var i=0; i < voices.length; i++){
+      option += '<option value="'+ i + '">' + voices[i].name + '</option>';
+    }
+    $elem.append(option);
+  }
+};
+
 SoundManager.prototype.getSoundVolume = function() {
   var volume = this.$snd_volume.val();
   volume = volume / 100.0;
