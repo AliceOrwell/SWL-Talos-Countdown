@@ -101,6 +101,23 @@ function tick() {
 }
 
 function main() {
+  if (sound_manager.isSoundCompatible()) {
+    // Reveal the notifications panel since sound compatible
+    $('#notifications').show();
+  }
+
+  if (sound_manager.isTTSCompatible()) {
+    var voices = window.speechSynthesis.getVoices();
+    var option = '';
+    for (var i=0; i < voices.length; i++){
+      option += '<option value="'+ i + '">' + voices[i].name + '</option>';
+    }
+    $('#tts_voices').append(option);
+
+    // Reveal the TTS panel since compatible
+    $('#tts').show();
+  }
+
   manager.init();
   tick();
 

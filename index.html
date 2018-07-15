@@ -109,8 +109,8 @@
   <script language="javascript" type="text/javascript" src="lib/moment-duration-format-2.2.2.js"></script>
 
   <!-- custom -->
-  <script language="javascript" type="text/javascript" src="src/soundmanager.js"></script>
   <script language="javascript" type="text/javascript" src="src/soundevent.js"></script>
+  <script language="javascript" type="text/javascript" src="src/soundmanager.js"></script>
   <script language="javascript" type="text/javascript" src="src/forecast.js"></script>
   <script language="javascript" type="text/javascript" src="src/talos.js"></script>
   <script language="javascript" type="text/javascript" src="src/main.js"></script>
@@ -121,22 +121,6 @@
 
     window.onload = function(e) {
       main();
-
-      if (sound_manager.isSoundCompatible()) {
-        // Reveal the notifications panel since sound compatible
-        $('#notifications').show();
-      }
-      if (sound_manager.isTTSCompatible()) {
-        // Reveal the TTS panel since compatible
-        $('#tts').show();
-
-        var voices = window.speechSynthesis.getVoices();
-        var option = '';
-        for (var i=0; i < voices.length; i++){
-          option += '<option value="'+ i + '">' + voices[i].name + '</option>';
-        }
-        $('#tts_voices').append(option);
-      }
     };
   </script>
 </body>
