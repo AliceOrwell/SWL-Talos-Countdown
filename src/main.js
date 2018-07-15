@@ -102,7 +102,7 @@ function tick() {
 
   // Update time
   now = moment();
-  //now.add(22, "minutes");   // DEBUG code
+  //now.add(37, "minutes");   // DEBUG code
 
   // Display current time to user.
   var current = new Date(now);      // Use a Date object as it has timezone string e.g. "GMT"

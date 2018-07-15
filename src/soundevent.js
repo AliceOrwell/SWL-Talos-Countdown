@@ -4,8 +4,6 @@ function SoundEvent(name, time, type, options) {
   this.type = type;
 
   this.prev_chk = moment(now);
-
-
   this.played = false;
 
   /*

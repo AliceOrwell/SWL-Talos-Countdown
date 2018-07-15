@@ -85,9 +85,8 @@ SoundManager.prototype.register = function(golem) {
     return;
   }
 
-  // if nothing registered
-  // if a newer one (we expect to only be given the next)
-  if (!this.golem || golem.window.getStart() > this.golem.window.getStart()) {
+  // if nothing registered or given a different one
+  if (!this.golem || golem.name != this.golem.name) {
     this.golem = golem;
     var name = golem.name;
 
