@@ -51,7 +51,7 @@ var settings = {
   update_freq: 1000,
 
   // When the event ends
-  event_end: "2018-07-18T13:00:00+00:00",          // Assumed end date
+  event_end: "2018-07-30T13:00:00+00:00",          // Assumed end date
 
   // Known occurance of a golem. Used to calculate all other golem times.
   known_golem_time: "2018-06-22T06:00:00+00:00",
