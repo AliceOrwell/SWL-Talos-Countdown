@@ -4,17 +4,16 @@ function SoundEvent(name, time, type, options) {
   this.type = type;
 
   this.prev_chk = moment(now);
-  this.played = false;
 
   /*
     IDEA: Consider pushing this to be handled in the manager
   */
   this.settings = {
-    $tts_chk: "",
-    $tts_txt: "",
-    $tts_btn: "",
-    $snd_chk: "",
-    $snd_btn: "",
+    $tts_chk: $(""),
+    $tts_txt: $(""),
+    $tts_btn: $(""),
+    $snd_chk: $(""),
+    $snd_btn: $(""),
     snd_file: "data/woodblock.mp3"
   };
   this.settings = extend(this.settings, options);
@@ -28,14 +27,13 @@ function SoundEvent(name, time, type, options) {
 }
 
 SoundEvent.prototype.tick = function() {
-  if (!this.played && this.isEventNow()) {
+  if (this.isEventNow()) {
     if (this.isTTSEnabled()) {
       this.playTTS();
     }
     if (this.isSoundEnabled()) {
       this.playSound();
     }
-    this.played = true;
   }
 };
 

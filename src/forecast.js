@@ -80,7 +80,7 @@ Forecast.prototype.isNext = function() {
   var interval = moment.duration(settings.interval, "ms");
   interval.add(settings.grace_period, "ms");
 
-  var result = (remaining < interval);
+  var result = (remaining <= interval);
   return result;
 };
 
