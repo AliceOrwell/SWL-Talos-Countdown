@@ -51,10 +51,10 @@ var settings = {
   update_freq: 1000,
 
   // When the event ends
-  event_end: "2022-07-17T13:00:00+00:00",          // Assumed end date
+  event_end: "2023-07-16T13:00:00+00:00",          // Assumed end date
 
   // Known occurance of a golem. Used to calculate all other golem times.
-  known_golem_time: "2018-06-22T06:00:00+00:00",
+  known_golem_time: "2023-06-24T13:00:00+00:00",
   // Index in golems array for known golem
   known_golem_index: 0,                            // Magma golem
 
